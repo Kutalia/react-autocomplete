@@ -1,6 +1,7 @@
 .autocomplete {
   position: relative;
-  width: 400px;
+  width: 70%;
+  max-width: 700px;
   margin: auto;
 }
 
@@ -26,6 +27,11 @@
   cursor: pointer;
 }
 
-.autocomplete .autocomplete__menu>div:hover {
+.autocomplete .autocomplete__menu>div:hover, .autocomplete .autocomplete__menu td:hover {
   background: #808080;
+}
+
+.autocomplete .autocomplete__menu td {
+  padding: 1rem;
+  border: 1px solid black;
 }

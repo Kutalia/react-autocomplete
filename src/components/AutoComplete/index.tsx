@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 
 import useWindowResize, { ScreenSizes } from '../../hooks/useWindowResize';
 import './AutoComplete.css';
@@ -50,6 +50,62 @@ const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
     }
   }, [inputEl]);
 
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const { value } = e.target;
+    setQuery(value);
+    setIsOpen(!!value);
+  };
+
+  const getItemProps = useCallback(({ data, id }: DataItem, index: number) => ({
+    key: id ?? index,
+    onClick: () => {
+      setQuery(String(data));
+      setIsOpen(false);
+    },
+    children: data,
+  }), []);
+
+  const mobileMenu = <div className="autocomplete__menu" ref={setAutoCompleteEl}>
+    {items.map((item, index) => (
+      <div
+        {...getItemProps(item, index)}
+      />
+    ))}
+  </div>;
+
+  const columns = 3;
+
+  const tableRows = useMemo(() => {
+    const rowElements: JSX.Element[] = [];
+
+    if (windowSize !== ScreenSizes.DESKTOP) {
+      return rowElements;
+    }
+
+    const rows = Math.ceil(items.length / columns);
+
+    return Array(rows).fill(null).map((_, row) => (
+      <tr key={row}>{Array(columns).fill(null).map((_, column) => {
+        const index = row * columns + column
+        const item = items[index];
+
+        if (!item) {
+          return null;
+        }
+
+        return (
+          <td {...getItemProps(item, index)}>{item.data}</td>
+        );
+      })}</tr>
+    ));
+  }, [windowSize, items, getItemProps]);
+
+  const desktopMenu = <table className="autocomplete__menu" ref={setAutoCompleteEl}>
+    <tbody>
+      {tableRows}
+    </tbody>
+  </table>;
+
   return (
     <div className="autocomplete">
       <input
@@ -57,25 +113,12 @@ const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
         value={query}
         placeholder="Enter user name"
         onClick={() => query && setIsOpen(true)}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
+        onChange={handleChange}
       />
-      {isOpen && !!items.length &&
-        <div className="autocomplete__menu" ref={setAutoCompleteEl}>
-          {items.map(({ data, id }, index) => (
-            <div
-              key={id ?? index}
-              onClick={() => {
-                setQuery(String(data));
-                setIsOpen(false);
-              }}
-            >
-              {data}
-            </div>
-          ))}
-        </div>}
+      {isOpen && !!items.length && (windowSize === ScreenSizes.DESKTOP
+        ? desktopMenu
+        : mobileMenu)
+      }
     </div>
   );
 };

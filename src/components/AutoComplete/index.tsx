@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 
 import useWindowResize, { ScreenSizes } from '../../hooks/useWindowResize';
+import { debounce } from '../../utils/common';
 import './AutoComplete.css';
 
 export interface DataItem {
@@ -15,10 +16,15 @@ interface PropTypes {
 const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
   const [items, setItems] = useState<DataItem[]>([]);
   const [query, setQuery] = useState<string>('');
+  const [text, setText] = useState<string>('');
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [inputEl, setInputEl] = useState<HTMLInputElement | null>(null);
   const [autoCompleteEl, setAutoCompleteEl] = useState<HTMLDivElement | null>(null);
   const windowSize = useWindowResize();
+
+  const debouncedQuery = useCallback(debounce((value: string) => {
+    setQuery(value);
+  }, 1000), []);
 
   useEffect(() => {
     const searchStr = query?.trim();
@@ -29,6 +35,10 @@ const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
       });
     }
   }, [query]);
+
+  useEffect(() => {
+    debouncedQuery(text);
+  }, [text]);
 
   useLayoutEffect(() => {
     if (inputEl && autoCompleteEl) {
@@ -50,11 +60,11 @@ const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
     }
   }, [inputEl]);
 
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
     const { value } = e.target;
-    setQuery(value);
+    setText(e.target.value);
     setIsOpen(!!value);
-  };
+  }, []);
 
   const getItemProps = useCallback(({ data, id }: DataItem, index: number) => ({
     key: id ?? index,
@@ -110,12 +120,12 @@ const AutoComplete: React.FC<PropTypes> = ({ getData }) => {
     <div className="autocomplete">
       <input
         ref={setInputEl}
-        value={query}
+        value={text}
         placeholder="Enter user name"
         onClick={() => query && setIsOpen(true)}
         onChange={handleChange}
       />
-      {isOpen && !!items.length && (windowSize === ScreenSizes.DESKTOP
+      {isOpen && text && !!items.length && (windowSize === ScreenSizes.DESKTOP
         ? desktopMenu
         : mobileMenu)
       }

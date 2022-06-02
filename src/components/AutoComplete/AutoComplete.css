@@ -1,0 +1,31 @@
+.autocomplete {
+  position: relative;
+  width: 400px;
+  margin: auto;
+}
+
+.autocomplete input, .autocomplete .autocomplete__menu {
+  font-size: 2rem;
+}
+
+.autocomplete input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.autocomplete .autocomplete__menu {
+  box-sizing: border-box;
+  width: 100%;
+  position: absolute;
+  top: 2rem;
+  left: 0;
+  background: #fff;
+  border: 1px solid black;
+  max-height: 20rem;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+.autocomplete .autocomplete__menu>div:hover {
+  background: #808080;
+}
